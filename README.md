@@ -712,4 +712,210 @@ they are generally placed inside of our bindings and typically they are variable
 expressions are not full JS syntax, you can not call a method for example. 
 
 a nice example you might need to know is making an array and calling out a specific part of your array: `[1,2,3][2]` this would output 3.
+ 
+ #Filters
+
+######Filters are a way for you to tell angular that you want to modify something for output 
+
+- filters can do three things:
+        
+        - Formatting: this might include things upper case or formating dates..etc
+
+        - Sorting Datasets: sort records in a datasets.
+
+        - Filtering Datasets
+
+####Using filter in angular 
+
+the following is a good example of how filter can be applied to an expression:
+```html
+{{{expression | filter}}
+```
+
+###Built in feautures
+
+Let's first look at the following:
+
+1. uppercase
+2. lowercase
+
+example:
+```html
+<div class="spann11">
+    <h2>{{event.name | upercase}}</h2>
+</div>
+```
+this will make all the letters uppercase
+
+we Also have the following:
+
+- number 
+  ```html
+<div>{{3.143246 | number:2}}</div> //this will output 3.14
+```
+- currency 
+- date
+        when we have a javascript date we can do `{{event.date | date: 'mediumDate'}}`
+-Json
+
+the last three are used in the `ng-repeat` which re 
+
+- orderBy
+- limitTo
+- filter
+
+lets try some of these out:
+
+we can go to our `ng-repeat` div and add the orderBy
+
+```html
+ <li ng-repeat="session in event.sessions | orderBy: sortOder">
+```
+then we go to our controller and add the following parameter:
+
+```javascript
+$scope.sortOrder ='name';
+```
+by default, angular will sort our data using the ame field/
+
+we can also change it to upvotecount which will sort according to the order in which we upvote sessions, but it will come out in reverse so we add the `-` to make it in he order of biggest to smallest
+
+```javascript
+$scope.sortOrder = '-upVoteCount';
+```
+
+What we if we want to allow the user to change the sort order according to a different variable.
+
+so let's go to our HTMML and add a drop down:
+
+```html
+Order By:
+<select ng-model="sortOrder"class="input-small">
+    <option selected value="name">Name</option>
+    <option value="-upVoteCount">Votes</option>
+</select>
+```
+this will be the output:
+![img_7.png](img_7.png)
+
+####the LimitTo filter
+
+This is if we want to show a limited number of sessions within a filter. for exaple if we wanna alter the sessions list to only show 2 sessions at a time:
+
+```html
+ <li ng-repeat="session in event.sessions | orderBy: sortOder | limitTo:2">
+```
+
+Let's give the users an ability to filter through the sessions by difficulty to do that we have to go back to the html and add the following:
+
+```html
+show:
+<select ng-model="query"class="input-small">
+    <option selected value=''>All</option>
+        <option selected value='Introductory'>Introductory</option>
+    <option selected value='Intermediate'>Intermediate</option>
+    <option selected value='Advanced'>Advanced</option>
+</select>
+```
+
+afterwards we have to specifify that i our `ng-repeat` div by adding the pipe and the query attributes:
+```html
+ <li ng-repeat="session in event.sessions | orderBy: sortOder | limitTo:2">
+```
+
+since the default is not passed we do not have to add any values to our controller but rather angular sifts through our data and reads simmiliar values and displays them accordingly. if we want to avoid mistakes made by angular will go back to our controller and add the attributes we are filtering.
+
+we can add an `evets.level` to each of our sessions and specify the parameters and then in our drop down menue we can then make our `ng-model="query.level" which will allow angular to look through the sessions and select only those with the secific parameters 
+
+##Writing a custom Filter
+
+to start writing a custom filter we should look at the template to create one:
+
+```javascript
+module.filter('name', function()
+{
+    return function(input /*, filter parameters */){
+        //modify input
+        return modifiedOutput
+    }
+});
+```
+
+we want to make a filter that will take in an integer for duration rather than a string and then output a string such as 'half an hour' or 'entire day'.
+
+to start I go into my controller and change the values of the duration for each session to integers from 1 to 4. For example:
+
+```javascript
+{
+   name: 'Scopes for fun and profit',
+   creatorName: 'John Doe',
+   duration: 2,
+   level: 'Introductory',
+   abstract: 'This session will take a closer look at scopes. Learn what they do, how they do it, and how to get them to do it for you.',
+   upVoteCount: 0
+}
+```
+Now that we have the data set up correctly I wanna go to my filters.js file and actually write the filter. Inside this file I will write this:
+
+```javascript
+eventsApp.filter('durations', function(){
+    return function(duration)
+    {
+        switch(duration)
+
+        {
+            case 1:
+                return 'Half Hour';
+            case 2:
+                return '1 Hour';
+            case 3:
+                return 'Half day';
+            case 4:
+                return: 'Full Day';
+        }
+    }
+});
+```
+this is a simple filter that takes in values from 1-4 and returns the strings shown above. 
+
+as you can see we passed the apps name and then called the filter method and then we wrote it out like how we used to write it down before.
+
+now to activate that filter we must go back to the html doc and add the following script:
+
+```html
+<script src="js/filters.js"></script>
+```
+
+now we should ass that filter to a bidning: ( look at the arrow for reference)
+
+```html
+<h4 class="well-title">{{session.name}}</h4>
+<h6 style="margin-top:-10px">{{session.creatorName}}</h6>
+<h6 style="margin-top:-10px">{{session.duration | durationa}}</h6> <!-- <---------- -->
+<h6 style="margin-top:-10px">{{session.level}}</h6>
+<p>{{session.abstract}}</p>
+```
+![img_8.png](img_8.png)
+
+we can see that our durations changed from their text values to the ones we specified
+
+##Two way binding
+
+this allows us to use the two way form controls and keep our model up to date automatically as this is a very useful thing since we do not need to write the code to read the contets
+
+this capability revolves around the 'ngModel' directive. this directive woks with three different html elemebts. 
+
+1. input
+2. select
+3. textArea
+
+the template for using the model directive: 
+```html
+<input type="text" ng-model="'object.property" />
+```
+
+##demo Two way binding
+
+we are going to make a page that allows users to create events:
+
 
