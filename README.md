@@ -918,4 +918,584 @@ the template for using the model directive:
 
 we are going to make a page that allows users to create events:
 
+  we first create a new html page called newEventHtml page. we add this page to our hompage's nav bar so we can access it. 
+
+we create a new div with a new controller and a new container  and included inside will be the form that the users will input in their information 
+```html
+  <div ng-controller="EditEventController">
+      <div class="container">
+          <h1>New Event</h1>
+          <hr />
+          <form>
+              <fieldset>
+                  <label for="eventName">Event Name:</label>
+                  <input id="eventName" type="text"  placeholder="Name of your event..." />
+                  <label for="eventDate">Event Date:</label>
+                  <input id="eventDate" type="text"  placeholder="format (mm/dd/yyyy)..." />
+                  <label for="eventTime">Event Time:</label>
+                  <input id="eventTime" type="text"  placeholder="start and end time..." />
+                  <label for="eventLocation">Event Location:</label>
+                  <input id="eventLocation" type="text" placeholder="Address of event..." />
+                  <br />
+                  <input id="eventCity" type="text"  placeholder="City..." />
+                  <input id="eventProvince" type="text"  placeholder="Province..." />
+                  <label for="eventImageUrl">Image:</label>
+                  <input id="eventImageUrl" type="url" placeholder="url of image..." />
+              </fieldset>
+              <img ng-src="{{event.imageUrl}}" src=""/>
+              <br/>
+              <br/>
+              
+              <button type="submit" class="btn btn-primary">save</button>
+              <button type="button" class="btn btn-default">Cancel</button>
+          </form>
+      </div>
+  </div>
+
+```
+But there is no editEventController included to the page so we link it using the `<script>` tage and then we create our new controller
+
+so we go back to our html and add a model directive so that the form does something:
+
+```html
+  <div ng-controller="EditEventController">
+      <div class="container">
+          <h1>New Event</h1>
+          <hr />
+          <form>
+              <fieldset>
+                  <label for="eventName">Event Name:</label>
+                  <input id="eventName" type="text"  ng-model="event.name" placeholder="Name of your event..." />
+                  <label for="eventDate">Event Date:</label>
+                  <input id="eventDate" type="text"   ng-model="event.date" placeholder="format (mm/dd/yyyy)..." />
+                  <label for="eventTime">Event Time:</label>
+                  <input id="eventTime" type="text" ng-model="event.time" placeholder="start and end time..." />
+                  <label for="eventLocation">Event Location:</label>
+                  <input id="eventLocation" type="text" ng-model="event.location.address" placeholder="Address of event..." />
+                  <br />
+                  <input id="eventCity" type="text" ng-model="event.location.city"  placeholder="City..." />
+                  <input id="eventProvince" type="text" ng-model="event.location.province" class="input-small" placeholder="Province..." />
+                  <label for="eventImageUrl">Image:</label>
+                  <input id="eventImageUrl" type="url" ng-model="event.imageUrl"  placeholder="url of image..." />
+              </fieldset>
+              <img ng-src="{{event.imageUrl}}" />
+              <br />
+              <br />
+
+              <button type="submit"  ng-click="saveEvent(event)" class="btn btn-primary">Save</button>
+              <button type="button" ng-click="cancelEvent()" class="btn btn-default">Cancel</button>
+          </form>
+      </div>
+  </div>
+
+```
+
+To understand this we use the `<img>` tag to understand how the `ng-model` affects the DOM and the html. since we linked the img input to an `ng-model="event.imageUrl"` and then afterwards had a display of that input with the `ng-src = "{{event.imageURL}}"`the moment we put in the url for the image we are thinking of the html will immidiatley display that image underneath.
+
+Now onto the button, we see that we have passed an `ng-click="saveEvent(event)"`  we are passing in an event to the function once this button is clicked. we can thereafter create this function in our controller as such
+
+```javascript
+$scope.saveEvent = function(event)
+{
+    window.alert('event' + event.name + 'Saved!');
+}
+```
+
+And for our cancel button we would like to create it such that when clicked it will direct th euser back to the home page:
+
+```javascript
+$scope.cancelEdit = function()
+{
+    window.location='eventDetails.html'
+}
+```
+
+##Validation
+
+The basic tools that can be used for validation. 
+
+we will be looking at the following validation properties:
+
+1. Required 
+2. ngPatter
+3. Form Pattern 
+4. Css Classes that angular puts on the form fields 
+
+so let's look at the required attribute, this when inputted into my form's input div and then put in the `required` attribute will not allow us to submit the form without filling that space. This can be acheived throough the following:
+
+```html
+ <input id="eventName" type="text" required ng-model="event.name" placeholder="Name of your event..." />
+```
+if I try to click save without the name field filled out, angular will give me the (please fill out this field) error
+
+Now let's look at the ngPattern directive. We want to look at the date field and make it required but also we want to ensure that the user inputs in the data as mm/dd/yyyy
+
+```html
+<input id="eventDate" type="text"   ng-model="event.date" required ng-pattern="/\d\d/\d\d/\d\d\d\d/" placeholder="format (mm/dd/yyyy)..." />
+```
+
+But before this, I must wrap my save event button with the fact that the input was taken in with the form I laid out with the `ng-pattern` directive.
+
+This can be done by adding an if statement that checks if my newEventForm is valid and then allows for the window alert to happen.
+```javascript
+$scope.saveEvent = function(event, newEventForm)
+{
+    if(newEventForm.$valid)
+    {
+        window.alert('saved');
+    }
+}
+```
+and we go back to our html and we add a new to our form like the following:
+
+```html
+    <form name="newEventForm"></form>
+```
+
+and then add that as a paramter to our save button as such:
+
+```html
+<button type="submit"  ng-click="saveEvent(event, newEventForm)" class="btn btn-primary">Save</button>
+```
+
+If the user does not put in the correct date input the user can still click save but nothing will happen. To enhance that we can add `ng-disable` directive to my save button which can be applied as follow:
+
+```html
+<button type="submit"  ng-click="saveEvent(event)" ng-disabled="newEventForm.$invaled" class="btn btn-primary">Save</button>
+```
+Once we added this `ng-disabled="newEventForm.$invaled"` we are telling angular that this button will be disabled as long as the date and name forms are invalid.
+
+Once we added these required and other validation directives, our css is altered and is passed on classes that inform th CSS which field has been altered and which has not been used. We can use that to our own advantage by altering the apperance of different forms to show the user which has been altered, which is required and which is needed to submit the form. 
+
+
+we add the following in style css code to our html page:
+
+```html
+<style>input.ng-invalid.ng-dirty {background-color: deeppink}</style>
+```
+this is telling the css that if the invalid value is true, which means that if the validation has taken effect or not and if it is dirty or not, which means if it has been altered: change the color to deepink.
+
+##Quiz
+
+- in form validation, what is the opposite property to dirty 
+
+        Pristine 
+- which directive lets you create a regex for validation?
+
+       ngPattern
+
+- what property does a form require in order to check validity?
+
+        a name
+
+#Services
+
+####What is a service in terms of angular js?
+
+A service is just a worker object that performs a buissness logic, it is not accessed over-the-wire. They are often statless.
+
+Angular has many built in services, but it is also easy to create your own custome services. 
+
+Why use Services?
+
+        - Reusablility: it allows us to reusable buissness logic 
+        - SRP: (single responsibility proncible) is one of the five solid principles of OOP and states that an obiect should only has a single responsibility. 
+        - Dependency injection: which means we can inject them into our controllers when we need them. 
+        - testable: we can isolate our tests to a single part of our code through injecting the services we need (i.e DI^)
+
+The `$scope` controller is actually an angular service and we can utilize it just by specifying it on the event controller. 
+
+let's create a service:
+
+we create a directory inside of our JS directory and called services, in it we will create a EventData.js service.
+
+Side Note: For built in services within angular, when we call on them we put the `$` but for services we create we should not use the dollar sign. this is to prevent overrirding already existing services.
+
+```javascript
+eventsApp.factory('eventData',function()
+{
+    return{
+        
+    }
+})
+```
+A factory is a simple function which allows us to add some logic to a created object and return the created object. 
+
+the eventsData service will have an event property and will contain all of our data from the eventController:
+
+```javascript
+eventsApp.factory('eventData', function()
+{
+    return{
+        event: {
+            name: 'Angular Boot Camp',
+            date: '1/1/2013',
+            time: '10:30 am',
+            location: {
+                address: 'Google Headquarters',
+                city: 'Mountain View',
+                province: 'CA'
+            },
+            imageUrl: '/img/angularjs-logo.png',
+            sessions: [
+                {
+                    name: 'Directives Masterclass',
+                    creatorName: 'Bob Smith',
+                    duration: 1,
+                    level: 'Advanced',
+                    abstract: 'In this session you will learn the ins and outs of directives!',
+                    upVoteCount: 0
+                },
+                {
+                    name: 'Scopes for fun and profit',
+                    creatorName: 'John Doe',
+                    duration: 2,
+                    level: 'Introductory',
+                    abstract: 'This session will take a closer look at scopes. Learn what they do, how they do it, and how to get them to do it for you.',
+                    upVoteCount: 0
+                },
+                {
+                    name: 'Well Behaved Controllers',
+                    creatorName: 'Jane Doe',
+                    duration: 4,
+                    level: 'Intermediate',
+                    abstract: 'Controllers are the beginning of everything Angular does. Learn how to craft controllers that will win the respect of your friends and neighbors',
+                    upVoteCount: 0
+                }
+            ]
+        }
+    };
+
+});
+```
+
+we go back to the controller we took away the data from and inject the eventsData service next to the scope to get this: ``  function EventController($scope, eventData) {}`, and afterwards we set the ```$scope.event = eventsData.event;``` 
+
+But we still can not see any of its effects yet because we need to link the script tagfor this service:
+```javascript
+<script src="js/services/EventData.js"></script>
+```
+
+We want to create a page for updating the user's profile, in this page we will build a service to complement the controller. 
+
+the following will be our html page:
+
+```html
+<html lang="en" ng-app="eventsApp">
+<head>
+    <meta charset="utf-8">
+    <title>Event Registration</title>
+    <link rel="stylesheet" href="/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/css/app.css"/>
+</head>
+<body>
+
+<div class="container-fluid" ng-controller="EditProfileController">
+    <form name="profileForm">
+        <div class="row-fluid">
+            <div class="span3">
+                <img ng-src="{{getGravatarUrl(user.emailAddress)}}"/>
+            </div>
+            <div class="span3">
+                <fieldset>
+                    <label for="userName">User Name:</label>
+                    <input focus id="userName" required ng-pattern="/^[-A-Za-z0-9]{2,20}$/" type="text" placeholder="Username" ng-model="user.userName" />
+                    <label for="password">Password:</label>
+                    <input id="password" required type="password" placeholder="Password" ng-model="user.password" />
+                </fieldset>
+                <div style="margin-top:15px">
+                    <fieldset>
+                        <label for="name">Name:</label>
+                        <input id="name" type="text" placeholder="Name" ng-model="user.name" />
+                        <label for="emailAddress">Email Address:</label>
+                        <input id="emailAddress" type="email" placeholder="Email Address" ng-model="user.emailAddress" />
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span6 offset3">
+                <label for="bio">Bio:</label>
+                <textarea id="bio" rows="6" style="width:97%; color:#52575c" placeholder="Bio" ng-model="user.bio"></textarea>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span6 offset3">
+                <div class="pull-left"><span class="btn">Cancel</span></div>
+                <div class="pull-right"><button type="submit" class="btn btn-primary">Save</button></div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<script src="/lib/jquery.min.js"></script>
+<script src="/lib/angular/angular.js"></script>
+<script src="/lib/angular/angular-sanitize.js"></script>
+<script src="/lib/underscore-1.4.4.min.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/controllers/EditProfileController.js"></script>
+<script src="/js/services/GravatarUrlBuilder.js"></script>
+<script src="/js/filters.js"></script>
+<script src="/lib/bootstrap.min.js"></script>
+
+</body>
+</html>
+```
+
+Afterwards we create a controller and call it `EditProfileController.js` this will be our controller:
+
+
+```javascript
+`use strict`
+
+eventsApp.controller('EditProfileController',
+    function EditProfileController($scope, gravatrUrlBuilder)
+    {
+        $scope.user = {};
+
+        $scope.getGravetarUrl = function(email)
+        {
+            return gravatarUrlBuilder.buildGravatarUrl(email);
+        }
+    });
+```
+
+Notice that we are passing in a service we have not created a service called `gravatarUrlBuilder` which we need to yet construct. 
+
+```javascript
+'use strict';
+
+eventsApp.factory('gravatarUrlBuilder', function () {
+   return {
+       buildGravatarUrl: function(email) {
+           var defaultGravatarUrl = "http://www.gravatar.com/avatar/000?s=200";
+
+           var regex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9
+           ]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+           if (!regex.test(email))
+               return defaultGravatarUrl;
+
+           var MD5=function(s){function L(k,d){return(k<<d)|(k>>>(32-d))}function K(G,k){var I,d,F,H,x;F=(G&2147483648);
+           H=(k&2147483648);I=(G&1073741824);d=(k&1073741824);x=(G&1073741823)+(k&1073741823);if(I&d){return(x^2147483648^F^H)}
+           if(I|d){if(x&1073741824){return(x^3221225472^F^H)}else{return(x^1073741824^F^H)}}else{return(x^F^H)}}
+           function r(d,F,k){return(d&F)|((~d)&k)}function q(d,F,k){return(d&k)|(F&(~k))}function p(d,F,k){return(d^F^k)}
+           function n(d,F,k){return(F^(d|(~k)))}function u(G,F,aa,Z,k,H,I){G=K(G,K(K(r(F,aa,Z),k),I));return K(L(G,H),F)}
+           function f(G,F,aa,Z,k,H,I){G=K(G,K(K(q(F,aa,Z),k),I));return K(L(G,H),F)}function D(G,F,aa,Z,k,H,I){G=K(G,K(K(
+               p(F,aa,Z),k),I));return K(L(G,H),F)}function t(G,F,aa,Z,k,H,I){G=K(G,K(K(n(F,aa,Z),k),I));return K(L(G,H),F)}
+               function e(G){var Z;var F=G.length;var x=F+8;var k=(x-(x%64))/64;var I=(k+1)*16;var aa=Array(I-1);var d=0;var 
+                   H=0;while(H<F){Z=(H-(H%4))/4;d=(H%4)*8;aa[Z]=(aa[Z]|(G.charCodeAt(H)<<d));H++}Z=(H-(H%4))/4;d=(H%4)*8;
+                   aa[Z]=aa[Z]|(128<<d);aa[I-2]=F<<3;aa[I-1]=F>>>29;return aa}function B(x){var k="",F="",G,d;for(d=0;d<=3;d++)
+                   {G=(x>>>(d*8))&255;F="0"+G.toString(16);k=k+F.substr(F.length-2,2)}return k}function J(k){k=k.replace(/rn/g,"n");
+                   var d="";for(var F=0;F<k.length;F++){var x=k.charCodeAt(F);if(x<128){d+=String.fromCharCode(x)}else
+                       {if((x>127)&&(x<2048)){d+=String.fromCharCode((x>>6)|192);d+=String.fromCharCode((x&63)|128)}
+                       else{d+=String.fromCharCode((x>>12)|224);d+=String.fromCharCode(((x>>6)&63)|128);d+=String.
+                       fromCharCode((x&63)|128)}}}return d}var C=Array();var P,h,E,v,g,Y,X,W,V;var S=7,Q=12,N=17,M=22;var
+                   A=5,z=9,y=14,w=20;var o=4,m=11,l=16,j=23;var U=6,T=10,R=15,O=21;s=J(s);C=e(s);Y=1732584193;X=4023233417;
+                   W=2562383102;V=271733878;for(P=0;P<C.length;P+=16){h=Y;E=X;v=W;g=V;Y=u(Y,X,W,V,C[P+0],S,3614090360);
+                   V=u(V,Y,X,W,C[P+1],Q,3905402710);W=u(W,V,Y,X,C[P+2],N,606105819);X=u(X,W,V,Y,C[P+3],M,3250441966);
+                   Y=u(Y,X,W,V,C[P+4],S,4118548399);V=u(V,Y,X,W,C[P+5],Q,1200080426);W=u(W,V,Y,X,C[P+6],N,2821735955);
+                   X=u(X,W,V,Y,C[P+7],M,4249261313);Y=u(Y,X,W,V,C[P+8],S,1770035416);V=u(V,Y,X,W,C[P+9],Q,2336552879);
+                   W=u(W,V,Y,X,C[P+10],N,4294925233);X=u(X,W,V,Y,C[P+11],M,2304563134);Y=u(Y,X,W,V,C[P+12],S,1804603682);
+                   V=u(V,Y,X,W,C[P+13],Q,4254626195);W=u(W,V,Y,X,C[P+14],N,2792965006);X=u(X,W,V,Y,C[P+15],M,1236535329);
+                   Y=f(Y,X,W,V,C[P+1],A,4129170786);V=f(V,Y,X,W,C[P+6],z,3225465664);W=f(W,V,Y,X,C[P+11],y,643717713);
+                   X=f(X,W,V,Y,C[P+0],w,3921069994);Y=f(Y,X,W,V,C[P+5],A,3593408605);V=f(V,Y,X,W,C[P+10],z,38016083);
+                   W=f(W,V,Y,X,C[P+15],y,3634488961);X=f(X,W,V,Y,C[P+4],w,3889429448);Y=f(Y,X,W,V,C[P+9],A,568446438);
+                   V=f(V,Y,X,W,C[P+14],z,3275163606);W=f(W,V,Y,X,C[P+3],y,4107603335);X=f(X,W,V,Y,C[P+8],w,1163531501);
+                   Y=f(Y,X,W,V,C[P+13],A,2850285829);V=f(V,Y,X,W,C[P+2],z,4243563512);W=f(W,V,Y,X,C[P+7],y,1735328473);
+                   X=f(X,W,V,Y,C[P+12],w,2368359562);Y=D(Y,X,W,V,C[P+5],o,4294588738);V=D(V,Y,X,W,C[P+8],m,2272392833);
+                   W=D(W,V,Y,X,C[P+11],l,1839030562);X=D(X,W,V,Y,C[P+14],j,4259657740);Y=D(Y,X,W,V,C[P+1],o,2763975236);
+                   V=D(V,Y,X,W,C[P+4],m,1272893353);W=D(W,V,Y,X,C[P+7],l,4139469664);X=D(X,W,V,Y,C[P+10],j,3200236656);
+                   Y=D(Y,X,W,V,C[P+13],o,681279174);V=D(V,Y,X,W,C[P+0],m,3936430074);W=D(W,V,Y,X,C[P+3],l,3572445317);
+                   X=D(X,W,V,Y,C[P+6],j,76029189);Y=D(Y,X,W,V,C[P+9],o,3654602809);V=D(V,Y,X,W,C[P+12],m,3873151461);
+                   W=D(W,V,Y,X,C[P+15],l,530742520);X=D(X,W,V,Y,C[P+2],j,3299628645);Y=t(Y,X,W,V,C[P+0],U,4096336452);
+                   V=t(V,Y,X,W,C[P+7],T,1126891415);W=t(W,V,Y,X,C[P+14],R,2878612391);X=t(X,W,V,Y,C[P+5],O,4237533241);
+                   Y=t(Y,X,W,V,C[P+12],U,1700485571);V=t(V,Y,X,W,C[P+3],T,2399980690);W=t(W,V,Y,X,C[P+10],R,4293915773);
+                   X=t(X,W,V,Y,C[P+1],O,2240044497);Y=t(Y,X,W,V,C[P+8],U,1873313359);V=t(V,Y,X,W,C[P+15],T,4264355552);
+                   W=t(W,V,Y,X,C[P+6],R,2734768916);X=t(X,W,V,Y,C[P+13],O,1309151649);Y=t(Y,X,W,V,C[P+4],U,4149444226);
+                   V=t(V,Y,X,W,C[P+11],T,3174756917);W=t(W,V,Y,X,C[P+2],R,718787259);X=t(X,W,V,Y,C[P+9],O,3951481745);
+                   Y=K(Y,h);X=K(X,E);W=K(W,v);V=K(V,g)}var i=B(Y)+B(X)+B(W)+B(V);return i.toLowerCase()};
+
+           return 'http://www.gravatar.com/avatar/' + MD5(email) + ".jpg?s=200&r=g";
+       }
+   }
+});
+```
+
+when we look at our page now, we will go to the profile portion, our picture will be the default gravatar picture and once we inout our email it will refresh nto our email's profile pic. 
+
+####introduction to built-in AngularJS services
+
+the ones we will touch on in this course include:
+
+1. $http 
+2. $resource
+3. $q
+4. $anchorScroll
+5. $cacheFactory 
+6. $compile 
+7. $parse 
+8. $locale
+9. $timeout
+10. $exceptionHandler 
+11. $filter
+12. $cookieStore
+13. $interpolate
+14. $log
+15. $rootScope
+16. $window
+17. $document 
+18. $rootElement
+19. $route 
+20. $routeParams
+21. $location
+22. $hhtpBackend
+23. $controller
+
+###$HTTP service 
+
+what is http in the first place? http is the Hypertext Transfer Protocol it is an application layer protocol for distributed, collaborative, hypermedia information systems it  allows the fetching of resources, such as HTML documents. It is the foundation of any data exchange on the Web and it is a client-server protocol, which means requests are initiated by the recipient, usually the Web browser.
+
+now that we know what http is, let's talk about what angular provides: angular provides a service that allows us to store our data in a specific online url location that will return our data to the webserver 
+
+here is an example of $http is used in angular 
+
+```javascript
+eventsApp.factory('eventData', function($http, $log) {
+    return {
+        getEvent: function (successcb) {
+            $http({method: 'GET', url: 'data/event/1'}).
+                success(function(data, status, headers,config){
+                    successcb(data);
+                    $log.info(data, status, header, config);
+            }).error(function(data, status, headers,config){
+                $log.warn(data, status, header, config);
+            });
+        }
+
+    }
+});
+```
+
+And in our controller we link this http with this:
+
+```javascript
+'use strict';
+
+eventsApp.controller('EventController', 
+  function EventController($scope, eventData) {
+    $scope.sortorder = 'name';
+    $scope.event = eventData.getEvent(function(event)
+    {
+        $scope.event = event;
+    });
+    
+    $scope.upVoteSession = function(session) {
+      session.upVoteCount++;
+    };
+    
+    $scope.downVoteSession = function(session) {
+      session.upVoteCount--;
+    }
+    
+  });
+```
+
+###`$anchorscrol`
+
+we first add an id to our `ng-repeat` element: `id="session{{session.id}}"`
+
+then we are going to need a button on the top of the page which will be constructed as follow:
+
+```html
+<button  type="button" class="btn btn-primary" ng-click="scrollToSession()">scroll</button>
+```
+
+then in our event controller js file we add the following method:
+
+```javascript
+$scope.scrollToSession = function()
+{
+    $anchorScroll();
+}
+```
+
+remember to inject the service into the controller
+
+when you go to your web page and press the button it will not do anything but if you add a ##session3 after our.html in out url and then press thebutton it will scroll down to session 3
+
+that is all there is to anchor scroll. 
+
+
+###`$cachefactory`
+
+this service is in a way to have 2 inputs, one the identifier and the second is a value of the indentifier. when we call on the first input the identifier our web app will respond with it's value that we inputte . 
+
+to do this we first must make a cacheSampleController.js file and wrote the following in it:
+
+```javascript
+eventsApp.controller('CacheSampleController',
+    function CacheSampleController($scope, myCache) {
+        $scope.addToCache = function(key, value) {
+            myCache.put(key, value);
+        };
+
+        $scope.readFromCache = function(key) {
+            return myCache.get(key);
+        };
+
+        $scope.getCacheStats = function() {
+            return myCache.info();
+        };
+
+
+    }
+);
+```
+
+and under our app js file we add the following:
+```javascript
+    .factory('myCache', function($cacheFactory) {
+        return $cacheFactory('myCache', {capacity: 3})
+    });
+
+```
+
+then we make a new html page and call it CacheSample.html and fill it with all of our basic html tags and in our body we put the following:
+
+```html
+        key: <input type="text" ng-model="key"/><br/>
+        value: <input type="text" ng-model="value"/><br/>
+        <button type="button" class="btn" ng-click="addToCache(key, value)">Add To Cache</button>
+        <br/>
+        <br/>
+        <input type="text" ng-model="keyToRead"/><br/>
+        <h3>Value from cache: {{readFromCache(keyToRead)}}</h3>
+        <h3>Cache Stats: {{getCacheStats()}}</h3>
+```
+ and we are done what we will get is a page where we input in different values to a maximum limit of 3:
+ 
+let's say I will input in a name and their favourite color:
+
+john, blue 
+jill, pink
+jack, grey 
+
+and then I input in one more 
+
+Anton, sage 
+
+if I then input in our last html input jill, it will respond with pink, if I input jack it will respond with grey and if I input anton it will respond with sage but john is not a value there because it was eliminated to make space for anton as we have a capacity of three.
+
+
+###`$compile`
+
+this service can be used to build a page in which we input in a variable such as a name and thereafter when we press a button we create it will add an html markup that we inputed into the page. 
+
+$parse has a similiar functionality as $compile 
+
+$locale is a service that can be used to present the current date on a page and in different languages if necessary. 
+
+$timeout is another sevice that is used to show a specific value on a page with a set time loop period
+
 
